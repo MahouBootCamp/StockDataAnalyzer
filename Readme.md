@@ -4,6 +4,10 @@
 
 **使用方法**：`python.exe main.py`即可（更多命令行参数将在后续开发中引入）。
 
+## 依赖
+
+- `Scrapy`：https://scrapy.org/
+
 ## 爬虫
 
 使用Scrapy爬虫爬取股票相关数据：
