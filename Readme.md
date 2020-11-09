@@ -4,7 +4,15 @@
 
 **使用方法**：`python.exe main.py`即可（更多命令行参数将在后续开发中引入）。
 
-## 依赖
+**⚠️注意事项⚠️**：如果将本项目代码复制入Jupyter NoteBook执行，一定要在每次执行前重置运行时，以避免加载过多twisted库造成的性能负担。（如果需要DEBUG级别的Scrapy Log信息，可以再main.py中配置。）
+
+## 环境与依赖
+
+### 开发环境
+
+开发使用`Anaconda 2020.7`版本（集成`Python 3.8`）。
+
+### 第三方包
 
 - `Scrapy`：https://scrapy.org/
 
@@ -21,14 +29,18 @@
 
 ## TODOs
 
-- 爬取各股票数据部分功能开发。
 - 数据分析部分开发。
 - 加入更多的命令行参数供用户选择。
 
 ### ISSUEs
 
+#### Twisted无法重新启动
+
+使用CrawlProcess调用start()函数将调用一个名为twisted的库。该库仅能在运行时启动一次，无法重启。我们的代码试图运行两个CrawlProcess，将会引发异常`twisted.internet.error.ReactorNotRestartable`。解决方案见参考资料2、3。
+
 ## 参考资料
 
-- 命令行选项：https://docs.python.org/3/library/optparse.html#module-optparse
-- 通过脚本语句启动Scrapy爬虫：https://docs.scrapy.org/en/latest/topics/practices.html
-- 股票接口：https://blog.csdn.net/luanpeng825485697/article/details/78442062
+1. 命令行选项：https://docs.python.org/3/library/optparse.html#module-optparse
+2. 通过脚本语句启动Scrapy爬虫：https://docs.scrapy.org/en/latest/topics/practices.html
+3. 避免脚本只能启动一个CrawlProcess的方法：https://stackoverflow.com/questions/41495052/scrapy-reactor-not-restartable/43661172
+4. 股票接口：https://blog.csdn.net/luanpeng825485697/article/details/78442062

@@ -3,6 +3,7 @@ import scrapy.http
 import urllib.parse
 import json
 import os
+import csv
 
 
 class StockListSpider(scrapy.Spider):
@@ -43,8 +44,7 @@ class StockListSpider(scrapy.Spider):
         如数据为空，则没有更多股票，退出\n
         如不为空，则重复调用scrapy.http.Request()函数\n
         """
-        text: str = response.text
-        text_in_json = json.loads(text)
+        text_in_json = json.loads(response.text)
         stock_items = text_in_json[0]["items"]
         if(len(stock_items) == 0):
             pass  # 没有更多股票，退出
@@ -62,7 +62,13 @@ class StockListSpider(scrapy.Spider):
         在完成爬虫后将数据写入列表文件
         """
         print("完成爬取股票列表...\n")
-        print(f"共获得 {len(self.stock_list)} 家股票代号信息...\n")
-        file = open('stock_list.json', 'w', encoding='utf-8')
-        file.write(json.dumps({"stock_list": self.stock_list}))
+        print(f"共获得 {len(self.stock_list)} 家股票代号信息\n")
+
+        file = open('stock_list.csv', 'w', newline='', encoding='utf-8')
+        file_writer = csv.writer(file, delimiter=',',
+                                 quotechar='|', quoting=csv.QUOTE_MINIMAL)
+        file_writer.writerow(["symbol", "name"])
+        for stock in self.stock_list:
+            file_writer.writerow([stock["symbol"], stock["name"]])
+
         file.close()

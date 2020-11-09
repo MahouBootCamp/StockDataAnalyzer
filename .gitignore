@@ -1,3 +1,8 @@
+# User defined data folder
+data/
+test_data/
+*.csv
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
