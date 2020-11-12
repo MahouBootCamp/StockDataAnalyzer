@@ -1,6 +1,7 @@
 import stock_data_spider
 import stock_list_spider
 import scrapy
+import time
 
 from multiprocessing import Process, Queue
 from twisted.internet import reactor
@@ -42,29 +43,20 @@ def main():
     """
     configure_logging({'LOG_FORMAT': '%(levelname)s: %(message)s'})
 
-    print("启动股票爬虫...\n")
-    print("爬取股票列表...\n")
+    print("启动股票爬虫...")
+    print("爬取股票列表...")
 
+    strat_time = time.time()
     run_spider(stock_list_spider.StockListSpider)
+    end_time = time.time()
+    print(f'爬取股票列表消耗 {end_time-strat_time} s')
 
-    print("爬取股票详细信息...\n")
+    print("爬取股票详细信息...")
 
+    strat_time = time.time()
     run_spider(stock_data_spider.StockDataSpider)
-
-    # runner = CrawlerRunner()
-
-    # print("启动股票爬虫...\n")
-    # print("爬取股票列表...\n")
-
-    # d = runner.crawl(stock_list_spider.StockListSpider)
-    # d.addBoth(lambda _: reactor.stop())
-    # reactor.run()
-
-    # print("爬取股票详细信息...\n")
-
-    # d = runner.crawl(stock_data_spider.StockDataSpider)
-    # d.addBoth(lambda _: reactor.stop())
-    # reactor.run()
+    end_time = time.time()
+    print(f'爬取股票信息消耗 {end_time-strat_time} s')
 
 
 if __name__ == "__main__":

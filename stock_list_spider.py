@@ -21,7 +21,7 @@ class StockListSpider(scrapy.Spider):
         self.stock_list = [{"symbol": "sh000001", "name": "上证指数"}, {
             "symbol": "sz399001", "name": "深证成指"}, {"symbol": "sh000300", "name": "沪深300"}]
         self.cnt = 0  # 从1开始
-        print("开始爬取股票列表...\n")
+        print("开始爬取股票列表...")
 
     def stock_url_builder(self, cnt: int) -> str:
         """
@@ -61,8 +61,8 @@ class StockListSpider(scrapy.Spider):
         """
         在完成爬虫后将数据写入列表文件
         """
-        print("完成爬取股票列表...\n")
-        print(f"共获得 {len(self.stock_list)} 家股票代号信息\n")
+        print("完成爬取股票列表...")
+        print(f"共获得 {len(self.stock_list)} 家股票代号信息")
 
         file = open('stock_list.csv', 'w', newline='', encoding='utf-8')
         file_writer = csv.writer(file, delimiter=',',

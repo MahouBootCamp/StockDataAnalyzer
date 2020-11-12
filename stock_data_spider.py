@@ -46,7 +46,7 @@ class StockDataSpider(scrapy.Spider):
     def parse(self, response: scrapy.http.Response, **kwargs):
         symbol = kwargs["symbol"]  # Get the stock symbol
         data_list = response.text.split('\\n\\')[2:]
-        print(f"完成爬取股票{symbol}\n")
+        print(f"完成爬取股票{symbol}")
         file = open(self.stock_data_dir+'/'+symbol+".csv",
                     'w', newline='', encoding='utf-8')
         file_writer = csv.writer(file, delimiter=',',
