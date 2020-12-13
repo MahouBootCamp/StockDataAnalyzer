@@ -1,6 +1,7 @@
 import stock_data_spider
 import stock_list_spider
 import scrapy
+import time
 
 from multiprocessing import Process, Queue
 from twisted.internet import reactor
