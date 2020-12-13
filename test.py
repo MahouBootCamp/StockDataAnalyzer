@@ -13,7 +13,7 @@ def stock_data_spider(stock, stock_data_url_base, stock_data_dir, stock_data_hea
     url = stock_data_url_base + symbol + ".js"
     response = requests.get(url)
     data_list = response.text.split("\\n\\")[2:]
-    print(f"完成爬取股票{symbol}")
+    # print(f"完成爬取股票{symbol}")
     file = open(stock_data_dir+'/'+symbol+".csv",
                 'w', newline='', encoding='utf-8')
     file_writer = csv.writer(file, delimiter=',',
@@ -41,7 +41,7 @@ while(True):
         stock_list.append({'symbol': item[0], 'name': item[2]})
 
 print(f"get {len(stock_list)} stocks")
-test_list_file = open("test_list.csv", 'w', encoding='utf-8')
+test_list_file = open("test_list.csv", 'w', encoding='utf-8', newline='')
 test_list_file_writer = csv.writer(test_list_file)
 test_list_file_writer.writerow(["symbol", "name"])
 for stock in stock_list:

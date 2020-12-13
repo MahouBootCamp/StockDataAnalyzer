@@ -37,6 +37,7 @@ class StockDataSpider(scrapy.Spider):
 
         # 日期 开盘 收盘 最高 最低 成交量
         self.csv_header = ["date", "open", "close", "high", "low", "volumn"]
+        self.stock_data = {}
 
     def start_requests(self):
         for stock in self.stock_list:
@@ -45,31 +46,20 @@ class StockDataSpider(scrapy.Spider):
 
     def parse(self, response: scrapy.http.Response, **kwargs):
         symbol = kwargs["symbol"]  # Get the stock symbol
-        data_list = response.text.split('\\n\\')[2:]
-        print(f"完成爬取股票{symbol}\n")
-        file = open(self.stock_data_dir+'/'+symbol+".csv",
-                    'w', newline='', encoding='utf-8')
-        file_writer = csv.writer(file, delimiter=',',
-                                 quotechar='|', quoting=csv.QUOTE_MINIMAL)
-        file_writer.writerow(self.csv_header)
-        for data in data_list:
-            file_writer.writerow(data.strip().split(' '))
-        file.close()
+        print(f"爬取股票：{symbol}\n")
+        self.stock_data[symbol] = response.text
 
-    # def parse(self, response: scrapy.http.Response, **kwargs):
-    #     symbol = kwargs["symbol"]  # Get the stock symbol
-    #     t = threading.Thread(
-    #         target=save_data, name='SaveDataThread', symbol=symbol, text=response.text)
-    #     t.start()
-
-    # def save_data(self, symbol, text):
-    #     print(f"完成爬取股票{symbol}\n")
-    #     data_list = text.split('\\n\\')[2:]
-    #     file = open(self.stock_data_dir+'/'+symbol+".csv",
-    #                 'w', newline='', encoding='utf-8')
-    #     file_writer = csv.writer(file, delimiter=',',
-    #                              quotechar='|', quoting=csv.QUOTE_MINIMAL)
-    #     file_writer.writerow(self.csv_header)
-    #     for data in data_list:
-    #         file_writer.writerow(data.strip().split(' '))
-    #     file.close()
+    def close(self, reason):
+        print("存储数据...\n")
+        for stock in self.stock_list:
+            symbol = stock["symbol"]
+            data_list = self.stock_data[symbol].split('\\n\\')[2:]
+            # print(f"完成爬取股票{symbol}\n")
+            file = open(self.stock_data_dir+'/'+symbol+".csv",
+                        'w', newline='', encoding='utf-8')
+            file_writer = csv.writer(file, delimiter=',',
+                                     quotechar='|', quoting=csv.QUOTE_MINIMAL)
+            file_writer.writerow(self.csv_header)
+            for data in data_list:
+                file_writer.writerow(data.strip().split(' '))
+            file.close()
