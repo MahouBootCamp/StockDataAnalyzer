@@ -45,6 +45,7 @@ def stock_list_spider():
 def stock_data_spider(stock: str):
     stock_data_url_base = 'http://data.gtimg.cn/flashdata/hushen/latest/daily/'
     stock_data_dir = "./data"
+    # 我们的交易数据将以如下的美股通用ohlc数据格式存储为csv文件
     # DOHLCV：日期 开盘 最高 最低 收盘 交易量
     stock_data_header = ["date", "open", "high", "low", "close", "volume"]
 
@@ -52,7 +53,7 @@ def stock_data_spider(stock: str):
     response = requests.get(url)
     data_list = response.text.split("\\n\\")[2:-1]  # 剔除标题信息以及最后一行垃圾信息
 
-    # print(f"完成爬取股票{stock}")
+    print(f"完成爬取股票{stock}")
 
     # 保存至./data/[股票代码].csv
     file = open(stock_data_dir+'/'+stock+".csv",
@@ -68,9 +69,13 @@ def stock_data_spider(stock: str):
     file.close()
 
     # 输出获得的首个交易日期及数据长度（默认100个）
-    first_date = datetime.strptime(
-        data_list[0].strip().split(' ')[0], "%y%m%d").date()
-    return {"first_date": pd.Timestamp(first_date), "data_lens": len(data_list)}
+    data_lens = len(data_list)
+    if data_lens > 0:  # 检查以避免刚上市无交易数据的新股导致程序崩溃
+        first_date = datetime.strptime(
+            data_list[0].strip().split(' ')[0], "%y%m%d").date()
+        return {"first_date": pd.Timestamp(first_date), "data_lens": data_lens}
+    else:
+        return {"first_date": pd.Timestamp(datetime.today()), "data_lens": data_lens}
 
 
 stock_list = stock_list_spider()
@@ -83,7 +88,8 @@ stock_data_dir = "./data"
 if not os.path.exists(stock_data_dir):
     os.makedirs(stock_data_dir)
 mapfunc = partial(stock_data_spider)
-pool = Pool(os.cpu_count())
+pool = Pool(6) # 在核特别多的机器上可能会被接口ban
+# pool = Pool(os.cpu_count())
 stock_data_dict = pool.map(mapfunc, stock_list["symbol"])   # 多线程执行下载工作
 pool.close()
 pool.join()
@@ -92,7 +98,8 @@ print(f"完成爬取 {len(stock_data_dict)} 支")
 stock_list = stock_list.join(pd.DataFrame(data=stock_data_dict))
 stock_list = stock_list[stock_list["data_lens"] == 100]
 print(f"清洗交易日不满一百的股票后剩余 {stock_list.shape[0]} 支")
-first_date = stock_list.loc[stock_list["symbol"] == "sh000001"].at[0,"first_date"]
+first_date = stock_list.loc[stock_list["symbol"]
+                            == "sh000001"].at[0, "first_date"]
 stock_list = stock_list[stock_list["first_date"] == first_date]
 print(f"清洗首个交易日与大盘数据不同的股票后剩余 {stock_list.shape[0]} 支")
 # print(stock_list.head(20))

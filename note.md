@@ -129,26 +129,7 @@ stock_list = stock_list[stock_list["first_date"] == first_date]
 print(f"清洗首个交易日与大盘数据不同的股票后剩余 {stock_list.shape[0]} 支")
 ```
 
-## 交易数据可视化
-
-Python为交易数据可视化提供了方便的轮子，mplfinance库最早是Matplotlib的一个内部组件，现在为一个独立库，但依旧依赖于Matplotlib。这里我们以sh000001上证综指为例，对K线图，5、10、15天均线，成交量数据进行可视化。
-
-```python
-def stock_plot(symbol: str):
-    stock_data = pd.read_csv("./data/" + symbol + ".csv",
-                             index_col=0, parse_dates=True)
-    stock_data.index.name = "Date"
-    mpf.plot(stock_data, type='candle', mav=(5, 10, 15), volume=True,
-    title=symbol, datetime_format="%Y%m%d")
-    return
-
-
-stock_plot("sh000001")
-```
-
-![sh000001](doc/sh000001_k.png)
-
-## 交易数据分析
+## 交易数据分析与可视化
 
 ### 统计分析
 
@@ -160,7 +141,9 @@ stock_plot("sh000001")
 
 随机指标(KDJ)是以最高价、最低价及收盘价为基本数据进行计算，得出的K值、D值和J值分别在指标的坐标上形成的一个点，连接无数个这样的点位，就形成一个完整的、能反映价格波动趋势的KDJ指标。它主要是利用价格波动的真实波幅来反映价格走势的强弱和超买超卖现象，在价格尚未上升或下降之前发出买卖信号的一种技术工具。它在设计过程中主要是研究最高价、最低价和收盘价之间的关系，同时也融合了动量观念、强弱指标和移动平均线的一些优点，因此，能够比较迅速、快捷、直观地研判行情。
 
-#### 数学公式
+#### 数学公式及代码
+
+定义见参考2。
 
 计算KDJ值，首先需要计算第n日的未成熟随机值RSV：
 
@@ -176,8 +159,73 @@ $$D_n=\frac{2}{3}D_{n-1}+\frac{1}{3}K_{n}$$
 
 $$J_n=3D_n-2K_n$$
 
+```python
+def KDJ(stock_data):
+    days = stock_data.shape[0]
+    k = [50]*9
+    d = [50]*9
+    j = [50]*9
+
+    for i in range(9, days):
+        lown = stock_data["low"][i-9:i].min()
+        highn = stock_data["high"][i-9:i].max()
+        closen = stock_data["close"][i]
+        rsvn = 100 * (closen - lown) / (highn - lown)
+        kn = 2/3*k[i-1] + 1/3*rsvn
+        dn = 2/3*d[i-1] + 1/3*kn
+        jn = 3*dn-2*kn
+        k.append(kn)
+        d.append(dn)
+        j.append(jn)
+
+    kdj = pd.DataFrame(data={"K": k, "D": d, "J": j})
+    stock_data = stock_data.reset_index().join(kdj).set_index("Date")
+    stock_data.loc[:9, "K"] = np.nan
+    stock_data.loc[:9, "D"] = np.nan
+    stock_data.loc[:9, "J"] = np.nan
+    return stock_data
+```
+
+### 可视化
+
+可视化使用了基于Matplotlib开发的第三方库mplfinance（见参考3）。该库最早是matplotlib的一部分，现在则作为一个独立的库维护。
+
+该库默认支持根据美股ohlc数据生成K线图或ohlc图，并支持同时显示交易量和不同的均线。
+
+通过调用`make_addplot()`方法，我们将KDJ数据也加入到同一张图的第二张小图中，我们的y轴位于最右侧，可见KDJ是位于0-100区间内的参数（注：J可以超越该区间）。
+
+特别的，由于该库不支持标签的显示，故这里我们指定了KDJ值的显示方式：K值为红线，D值为绿线，J值为蓝线。
+
+```python
+def StockAnalysis(symbol: str):
+    stock_data = pd.read_csv("./data/" + symbol + ".csv",
+                             index_col=0, parse_dates=True)
+    stock_data.index.name = "Date"
+
+    stock_data = KDJ(stock_data)
+
+    aps = [
+        mpf.make_addplot(stock_data["K"], panel=1, color="r"),
+        mpf.make_addplot(stock_data["D"], panel=1, color="g"),
+        mpf.make_addplot(stock_data["J"], panel=1, color="b")
+    ]
+
+    mpf.plot(stock_data, type='candle', mav=(5, 10, 15), volume=True,
+             title=symbol, datetime_format="%Y%m%d", addplot=aps, panel_ratios=(1, 1), figratio=(2, 1), figscale=1.5)
+
+
+symbol = "sh000001"
+StockAnalysis(symbol)
+```
+
+![pic](./doc/sh000001_kdj.png)
+
 ## 机器学习预测股票数据
+
+设想：以过去若干日的数据为输入，以下一日的涨跌幅划分区间作为输出（例：大跌0，平稳1，大涨2）。或在输入中加入对应的KDJ值。
 
 ## 参考资料
 
-1. 股票接口：https://blog.csdn.net/luanpeng825485697/article/details/78442062 
+1. [股票接口](https://blog.csdn.net/luanpeng825485697/article/details/78442062)
+2. [KDJ](https://wiki.mbalib.com/wiki/%E9%9A%8F%E6%9C%BA%E6%8C%87%E6%A0%87)
+3. [mplfinance](https://github.com/matplotlib/mplfinance/)
