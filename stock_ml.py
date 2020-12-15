@@ -67,6 +67,10 @@ model.add(Dense(units=3, activation='softmax'))
 model.compile(loss='categorical_crossentropy',
               optimizer='sgd',
               metrics=['accuracy'])
+print("==========进行训练==========")
 model.fit(x_train, y_train, epochs=32, batch_size=500)
+
+print("==========进行测试==========")
 res = model.evaluate(x_test, y_test)
-print(res)
+print("Loss: ", res[0])
+print("Accuracy: ", res[1])
