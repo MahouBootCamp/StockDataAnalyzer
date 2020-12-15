@@ -8,9 +8,9 @@ import matplotlib.pyplot as plt
 
 def KDJ(stock_data):
     days = stock_data.shape[0]
-    k = [50]*9
-    d = [50]*9
-    j = [50]*9
+    k = [50.0]*9
+    d = [50.0]*9
+    j = [50.0]*9
 
     for i in range(9, days):
         lown = stock_data["low"][i-9:i].min()
@@ -20,6 +20,10 @@ def KDJ(stock_data):
         kn = 2/3*k[i-1] + 1/3*rsvn
         dn = 2/3*d[i-1] + 1/3*kn
         jn = 3*dn-2*kn
+        if jn > 100.0:
+            jn = 100.0
+        if jn < 0.0:
+            jn = 0.0
         k.append(kn)
         d.append(dn)
         j.append(jn)
@@ -49,5 +53,5 @@ def StockAnalysis(symbol: str):
              title=symbol, datetime_format="%Y%m%d", addplot=aps, panel_ratios=(1, 1), figratio=(2, 1), figscale=1.5)
 
 
-symbol = "sh000001"
-StockAnalysis(symbol)
+# symbol = "sh000001"
+# StockAnalysis(symbol)
